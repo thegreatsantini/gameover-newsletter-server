@@ -4,17 +4,21 @@ const express = require("express"),
   ssclient = require("smartsheet"),
   app = express(),
   fs = require("fs");
+  const cors = require('cors')
 
+const gameSheets = require('./controllers/gameSheets')
 // instantiating the Smartsheet client
 const smartsheet = ssclient.createClient({
   // a blank token provides access to Smartsheet token endpoints
   accessToken: ""
 });
-
+app.use(cors());
 // starting an express server
 app.listen(8080, () => {
   console.log("Ports listening on 3000...");
 });
+
+app.use( '/gamesheets', gameSheets );
 
 // setting up home route containing basic page content
 app.get("/", (req, res) => {
