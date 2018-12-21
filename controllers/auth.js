@@ -26,7 +26,6 @@ auth.post('/server/login', (req,res, err) => {
     .searchSheet(options)
     .then( function(results) {
       if (results.totalCount > 0) {
-        console.log()
         res.status(200).send({'data' : results.results[0].contextData[0].split(' ')[2]})
       }
       else {
@@ -65,11 +64,11 @@ auth.post("/server/signup", (req, res, err) => {
               },
               {
                 columnId: process.env.PASSWORD_COLUMN_ID,
-                value: req.body.userName
+                value: req.body.password
               },
               {
                 columnId: process.env.USERNAME_COLUMN_ID,
-                value: req.body.password
+                value: req.body.userName
               }
             ]
           }
