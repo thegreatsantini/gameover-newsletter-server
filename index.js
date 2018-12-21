@@ -1,8 +1,8 @@
+const express = require("express");
 const app = express(),
       bodyParser = require('body-parser'),
       config = require("./config.json"),
       cors = require('cors'),
-      express = require("express"),
       fs = require('fs'),
       qs = require("querystring"),
       ssclient = require("smartsheet");
