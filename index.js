@@ -1,23 +1,28 @@
-const express = require("express"),
+const app = express(),
+      bodyParser = require('body-parser'),
       config = require("./config.json"),
+      cors = require('cors'),
+      express = require("express"),
+      fs = require('fs'),
       qs = require("querystring"),
-      ssclient = require("smartsheet"),
-      app = express(),
-      fs = require("fs"),
-      cors = require('cors');
+      ssclient = require("smartsheet");
 
-const gameSheets = require('./controllers/gameSheets')
-// instantiating the Smartsheet client
+const auth = require('./controllers/auth');
+const gameSheets = require('./controllers/gameSheets');
+
+// instantiate the Smartsheet client
 const smartsheet = ssclient.createClient({
   // a blank token provides access to Smartsheet token endpoints
   accessToken: ""
 });
-app.use(cors());
-// starting an express server
-app.listen(8080, () => {
-  console.log("Ports listening on 3000...");
-});
 
+// middleware
+app.use(cors());
+app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// controllers
+app.use('/auth', auth);
 app.use('/gamesheets', gameSheets);
 
 // setting up home route containing basic page content
@@ -122,3 +127,8 @@ function processToken(error, token) {
 
   return token;
 }
+
+// starting an express server
+app.listen(8080, () => {
+  console.log("Ports listening on 3000...");
+});
