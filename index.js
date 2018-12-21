@@ -1,10 +1,10 @@
 const express = require("express"),
-  config = require("./config.json"),
-  qs = require("querystring"),
-  ssclient = require("smartsheet"),
-  app = express(),
-  fs = require("fs");
-  const cors = require('cors')
+      config = require("./config.json"),
+      qs = require("querystring"),
+      ssclient = require("smartsheet"),
+      app = express(),
+      fs = require("fs"),
+      cors = require('cors');
 
 const gameSheets = require('./controllers/gameSheets')
 // instantiating the Smartsheet client
@@ -18,11 +18,11 @@ app.listen(8080, () => {
   console.log("Ports listening on 3000...");
 });
 
-app.use( '/gamesheets', gameSheets );
+app.use('/gamesheets', gameSheets);
 
 // setting up home route containing basic page content
 app.get("/", (req, res) => {
-    console.log('hello********************')
+  console.log('hello********************')
   res.send(
     '<h1>Sample oAuth flow for Smartsheet</h1><a href="/auth">Login to Smartsheet</a></br><a href="/refresh">Refresh Token</a>'
   );
