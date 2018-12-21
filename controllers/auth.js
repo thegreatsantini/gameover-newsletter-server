@@ -29,7 +29,7 @@ auth.post('/server/login', (req,res, err) => {
         res.status(200).send({'data' : results.results[0].contextData[0].split(' ')[2]})
       }
       else {
-        res.status(400).send('no user')
+        res.status(400).send('User not recognized');
       }
     })
     .catch(function(error) {
@@ -60,7 +60,6 @@ auth.post("/server/signup", (req, res, err) => {
               {
                 columnId: process.env.EMAIL_COLUMN_ID,
                 value: req.body.email
-                // "strict": false
               },
               {
                 columnId: process.env.PASSWORD_COLUMN_ID,
@@ -96,14 +95,6 @@ auth.post("/server/signup", (req, res, err) => {
     .catch(function(error) {
       console.log(error);
     });
-  // smartsheet.sheets.getSheet({id: userSheetId})
-  //   .then(sheetInfo => {
-  //     // console.log(sheetInfo);
-  //     res.status(200).send({ 'req.body': req.body });
-  //   })
-  //   .catch(error => {
-  //     console.log(error);
-  //   });
 });
 
 module.exports = auth;
