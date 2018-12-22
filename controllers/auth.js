@@ -9,8 +9,30 @@ const smartsheet = client.createClient({
   logLevel: "info"
 });
 
-auth.get("/", (req, res, err) => {
-  res.send("hello from auth!");
+auth.get("/server/:email/:password", (req, res, err) => {
+  console.log(req.params)
+  // const options = {
+  //   sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+  //   queryParameters: {
+  //    query: `"${req.params.email}"`
+  //   }
+  // };
+
+  // smartsheet.search.searchSheet(options).then( (results)=> {
+  //   if (results.totalCount > 0) {
+  //     const userInfo = {
+  //       sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+  //       rowId: results.results[0].objectId
+  //     };
+  //     smartsheet.sheets.getRow(userInfo).then( row =>  {
+  //       const userPassword = rows.cells[3].displayValue;
+  //       // if (  )
+  //     })
+  //   } else {
+  //     res.status(200).send('User already exists, please Signup and to create a profile :)')
+  //   } 
+  // }).catch( err => console.log('error when searching for a current user', err))
+  res.status(300).send({"mesage":"hello from auth!"});
 });
 
 auth.post("/server/login", (req, res, err) => {
@@ -36,17 +58,17 @@ auth.post("/server/login", (req, res, err) => {
             const userPass = row.cells[3].displayValue;
             if (userPass === req.body.password) {
               res.status(200).send({
-                data: results.results[0].contextData[0].split(" ")[2]
+                "userId": results.results[0].contextData[0].split(" ")[2]
               });
             } else if (userPass != req.body.password) {
-              res.status(400).send("Email or password are incorrect");
+              res.status(200).send({ "message" : "incorrect email or password"});
             } else {
-              res.status.send("something else went wrong");
+              res.status(400).send({"meassage":"something else went wrong"});
             }
           })
           .catch(err => console.log("line 34", err));
       } else {
-        res.status(400).send("User not recognized");
+        res.status(200).send({"message":"User not recognized"});
       }
     })
     .catch(function(error) {
