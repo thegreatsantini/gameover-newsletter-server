@@ -8,34 +8,51 @@ const smartsheet = client.createClient({
   accessToken: process.env.SMARTSHEET_TOKEN,
   logLevel: "info"
 });
-const userSheetId = process.env.SMARTSHEET_USER_SHEET_ID;
 
 auth.get("/", (req, res, err) => {
   res.send("hello from auth!");
 });
 
-auth.post('/server/login', (req,res, err) => {
+auth.post("/server/login", (req, res, err) => {
   const options = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
       query: `"${req.body.email}"`
-    } 
+    }
   };
 
   smartsheet.search
     .searchSheet(options)
-    .then( function(results) {
+    .then(function(results) {
       if (results.totalCount > 0) {
-        res.status(200).send({'data' : results.results[0].contextData[0].split(' ')[2]})
-      }
-      else {
-        res.status(400).send('User not recognized');
+        const userInfo = {
+          sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+          rowId: results.results[0].objectId
+        };
+        // get user password to check match
+        smartsheet.sheets
+          .getRow(userInfo)
+          .then(row => {
+            const userPass = row.cells[3].displayValue;
+            if (userPass === req.body.password) {
+              res.status(200).send({
+                data: results.results[0].contextData[0].split(" ")[2]
+              });
+            } else if (userPass != req.body.password) {
+              res.status(400).send("Email or password are incorrect");
+            } else {
+              res.status.send("something else went wrong");
+            }
+          })
+          .catch(err => console.log("line 34", err));
+      } else {
+        res.status(400).send("User not recognized");
       }
     })
     .catch(function(error) {
       console.log(error);
     });
-})
+});
 
 auth.post("/server/signup", (req, res, err) => {
   const options = {
@@ -47,7 +64,7 @@ auth.post("/server/signup", (req, res, err) => {
 
   smartsheet.search
     .searchSheet(options)
-    .then( function(results) {
+    .then(function(results) {
       if (results.totalCount === 0) {
         // add row in smart sheet
         const row = [
@@ -82,7 +99,7 @@ auth.post("/server/signup", (req, res, err) => {
         smartsheet.sheets
           .addRows(options)
           .then(function(newRows) {
-            console.log(newRows.result[0].cells)
+            console.log(newRows.result[0].cells);
             res.status(200).send(newRows.result[0].cells[0].value);
           })
           .catch(function(error) {
