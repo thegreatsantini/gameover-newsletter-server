@@ -3,6 +3,7 @@ const express = require("express");
 const auth = express.Router();
 const client = require("smartsheet");
 const uuidv1 = require("uuid/v1");
+const bcrypt = require('bcryptjs');
 
 const smartsheet = client.createClient({
   accessToken: process.env.SMARTSHEET_TOKEN,
@@ -54,13 +55,15 @@ auth.post("/server/login", (req, res, err) => {
         // get user password to check match
         smartsheet.sheets
           .getRow(userInfo)
-          .then(row => {
+          .then(async row => {
             const userPass = row.cells[3].displayValue;
-            if (userPass === req.body.password) {
+            const checkPass = await bcrypt.compareSync(req.body.password, row.cells[3].displayValue);
+            
+            if (checkPass) {
               res.status(200).send({
                 "userId": results.results[0].contextData[0].split(" ")[2]
               });
-            } else if (userPass != req.body.password) {
+            } else if (!checkPass) {
               res.status(200).send({ "message" : "incorrect email or password"});
             } else {
               res.status(400).send({"meassage":"something else went wrong"});
@@ -72,7 +75,7 @@ auth.post("/server/login", (req, res, err) => {
       }
     })
     .catch(function(error) {
-      console.log(error);
+      console.log('error in search', error);
     });
 });
 
@@ -86,8 +89,9 @@ auth.post("/server/signup", (req, res, err) => {
 
   smartsheet.search
     .searchSheet(options)
-    .then(function(results) {
+    .then(async (results) => {
       if (results.totalCount === 0) {
+        const salt = await bcrypt.genSaltSync(10);
         // add row in smart sheet
         const row = [
           {
@@ -102,7 +106,7 @@ auth.post("/server/signup", (req, res, err) => {
               },
               {
                 columnId: process.env.PASSWORD_COLUMN_ID,
-                value: req.body.password
+                value: await bcrypt.hashSync(req.body.password, salt)
               },
               {
                 columnId: process.env.USERNAME_COLUMN_ID,
