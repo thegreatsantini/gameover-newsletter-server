@@ -58,11 +58,13 @@ auth.post("/server/login", (req, res, err) => {
           .then(async row => {
             const userPass = row.cells[3].displayValue;
             const checkPass = await bcrypt.compareSync(req.body.password, row.cells[3].displayValue);
-            
+            const person = {
+              "userId" : row.cells[0].value,
+              'userName' : row.cells[2].value,
+              'watchList' : row.cells[4].value
+            }
             if (checkPass) {
-              res.status(200).send({
-                "userId": results.results[0].contextData[0].split(" ")[2]
-              });
+              res.status(200).send(person);
             } else if (!checkPass) {
               res.status(200).send({ "message" : "incorrect email or password"});
             } else {
@@ -111,6 +113,10 @@ auth.post("/server/signup", (req, res, err) => {
               {
                 columnId: process.env.USERNAME_COLUMN_ID,
                 value: req.body.userName
+              },
+              {
+                columnId: process.env.WATCHLIST_COLUMN_ID,
+                value: ''
               }
             ]
           }
@@ -125,14 +131,19 @@ auth.post("/server/signup", (req, res, err) => {
         smartsheet.sheets
           .addRows(options)
           .then(function(newRows) {
-            console.log(newRows.result[0].cells);
-            res.status(200).send(newRows.result[0].cells[0].value);
+            const person = {
+              "userId": newRows.result[0].cells[0].value, 
+              "userName": newRows.result[0].cells[2].value,
+              'watchList': ''
+            }
+            res.status(200).send(person);
           })
           .catch(function(error) {
             res.status(400).send("Unable to add new user");
           });
       } else {
-        res.status(200).send(results);
+        res.status(200).send({message : 'User already exists'})
+        // res.status(200).send(results);
       }
     })
     .catch(function(error) {
