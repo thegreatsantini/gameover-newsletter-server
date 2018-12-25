@@ -1,17 +1,22 @@
+require("dotenv").config();
 const express = require("express");
 const gameSheets = express.Router();
+const client = require("smartsheet");
 
-gameSheets.get('/', (req, res, err)=> {
-  res.send('hello from game sheets!')
-})
+const smartsheet = client.createClient({
+  accessToken: process.env.SMARTSHEET_TOKEN,
+  logLevel: "info"
+});
 
-gameSheets.get('/:id', (req, res, err) => {
-  /*
-    TODO:
-      1) query users sheet to get watchlist data
-      2) parse watchlist data
-      3) query games sheet with game IDs to get game details and availability
-  */
-})
+gameSheets.get("/games", async (req, res, err) => {
+  var options = {
+    id: process.env.SMARTSHEET_GAME_SHEET_ID,
+  };
+
+   const games = await smartsheet.sheets.getSheet(options)
+  
+  res.status(200).send("Fetching all games!");
+  
+});
 
 module.exports = gameSheets;
