@@ -9,6 +9,8 @@ const app = express(),
 
 const auth = require('./controllers/auth');
 const gameSheets = require('./controllers/gameSheets');
+const usersSheet = require('./controllers/usersSheet');
+const user = require('./controllers/user');
 
 // instantiate the Smartsheet client
 const smartsheet = ssclient.createClient({
@@ -23,7 +25,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // controllers
 app.use('/auth', auth);
+app.use('/user', user);
 app.use('/gamesheets', gameSheets);
+app.use('/usersSheet', usersSheet);
 
 // setting up home route containing basic page content
 app.get("/", (req, res) => {
