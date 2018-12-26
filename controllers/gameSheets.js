@@ -8,15 +8,15 @@ const smartsheet = client.createClient({
   logLevel: "info"
 });
 
+// List all games
 gameSheets.get("/games", async (req, res, err) => {
   var options = {
-    id: process.env.SMARTSHEET_GAME_SHEET_ID,
+    id: process.env.SMARTSHEET_GAME_SHEET_ID
   };
 
-   const games = await smartsheet.sheets.getSheet(options)
-  
+  const games = await smartsheet.sheets.getSheet(options);
+
   res.status(200).send("Fetching all games!");
-  
 });
 
 module.exports = gameSheets;
