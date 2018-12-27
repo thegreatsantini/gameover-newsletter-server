@@ -9,7 +9,7 @@ const smartsheet = client.createClient({
 });
 
 // Get user's current watchlist
-user.get("/watchlist/:id", async (req, res, err) => {
+user.get("/:id", async (req, res, err) => {
   const userSearchOptions = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
@@ -25,7 +25,7 @@ user.get("/watchlist/:id", async (req, res, err) => {
   };
 
   const currentUserData = await smartsheet.sheets.getRow(options);
-
+  console.log(currentUserData);
   res.status(200).send("Fetching current user data!");
 });
 
@@ -35,6 +35,11 @@ user.post("/watchlist/add", async (req, res, err) => {
   find current user
   post new watchlist array
   */
+  var options = {
+    id: process.env.SMARTSHEET_GAME_SHEET_ID
+  };
+
+  const allGames = await smartsheet.sheets.getSheet(options);
   res.status(200).send("Added new game to watchlist");
 });
 
@@ -44,6 +49,11 @@ user.post("/watchlist/remove", async (req, res, err) => {
   find current user
   post new watchlist array
   */
+  var options = {
+    id: process.env.SMARTSHEET_GAME_SHEET_ID
+  };
+
+  const allGames = await smartsheet.sheets.getSheet(options);
   res.status(200).send("Removed game from watchlist");
 });
 module.exports = user;

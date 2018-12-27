@@ -15,7 +15,7 @@ gameSheets.get("/games", async (req, res, err) => {
   };
 
   const games = await smartsheet.sheets.getSheet(options);
-
+  console.log('game', games)
   res.status(200).send("Fetching all games!");
 });
 
