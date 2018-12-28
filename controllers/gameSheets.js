@@ -15,8 +15,19 @@ gameSheets.get("/games", async (req, res, err) => {
   };
 
   const games = await smartsheet.sheets.getSheet(options);
-  console.log('game', games)
-  res.status(200).send("Fetching all games!");
+  const keys = [
+    'title',
+    'console',
+    'avaliable',
+    'pending',
+    'genres',
+  ]
+  const gamesArr =  games.rows.map( game => game.cells.reduce((acc, next, i) => {
+    acc[keys[i]] = next.displayValue
+    return acc
+  }, {}) )
+  console.log(gamesArr)
+  res.status(200).send({"all games!": gamesArr});
 });
 
 module.exports = gameSheets;
