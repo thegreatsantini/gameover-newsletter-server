@@ -23,10 +23,22 @@ user.get("/:id", async (req, res, err) => {
       .searchSheet(userSearchOptions)
       .then(res => res.results[0].objectId)
   };
-
   const currentUserData = await smartsheet.sheets.getRow(options);
-  console.log(currentUserData);
-  res.status(200).send("Fetching current user data!");
+  const keys = [
+    "id",
+    "email",
+    "userName",
+    "password",
+    "watchlist",
+    "following"
+  ];
+  const massagedUser = currentUserData.cells.reduce((acc, next, i) => {
+    if (i != 3) {
+      acc[keys[i]] = next.value;
+    }
+    return acc;
+  }, {});
+  res.status(200).send({ "current user data!": massagedUser });
 });
 
 // Add game to watchlist
@@ -40,6 +52,7 @@ user.post("/watchlist/add", async (req, res, err) => {
   };
 
   const allGames = await smartsheet.sheets.getSheet(options);
+  allGames.rows.forEach(val => console.log(val.cells));
   res.status(200).send("Added new game to watchlist");
 });
 
