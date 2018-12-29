@@ -122,7 +122,7 @@ auth.post("/server/signup", (req, res, err) => {
           }
         ];
         // Set options
-        var options = {
+        const options = {
           sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
           body: row
         };
