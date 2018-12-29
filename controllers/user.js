@@ -42,31 +42,74 @@ user.get("/:id", async (req, res, err) => {
 });
 
 // Add game to watchlist
-user.post("/watchlist/add", async (req, res, err) => {
-  /*
-  find current user
-  post new watchlist array
-  */
-  var options = {
-    id: process.env.SMARTSHEET_GAME_SHEET_ID
+user.put("/watchlist/add", async (req, res, err) => {
+  const options = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    queryParameters: {
+      query: `"${req.body.userId}"`
+    }
   };
 
-  const allGames = await smartsheet.sheets.getSheet(options);
-  allGames.rows.forEach(val => console.log(val.cells));
+  const updatedWatchlist = [
+    {
+      id: await smartsheet.search
+        .searchSheet(options)
+        .then(data => data.results[0].objectId),
+      cells: [
+        {
+          columnId: process.env.WATCHLIST_COLUMN_ID,
+          value: req.body.gameRowId
+        }
+      ]
+    }
+  ];
+
+  const addCellOptions = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    body: updatedWatchlist
+  };
+
+  try {
+    await smartsheet.sheets.updateRow(addCellOptions);
+  } catch (err) {
+    console.log("err", err);
+  }
   res.status(200).send("Added new game to watchlist");
 });
 
 // Remove game from watchlist
 user.post("/watchlist/remove", async (req, res, err) => {
-  /*
-  find current user
-  post new watchlist array
-  */
-  var options = {
-    id: process.env.SMARTSHEET_GAME_SHEET_ID
+  const options = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    queryParameters: {
+      query: `"${req.body.userId}"`
+    }
   };
 
-  const allGames = await smartsheet.sheets.getSheet(options);
+  const updatedWatchlist = [
+    {
+      id: await smartsheet.search
+        .searchSheet(options)
+        .then(data => data.results[0].objectId),
+      cells: [
+        {
+          columnId: process.env.WATCHLIST_COLUMN_ID,
+          value: req.body.gameRowId
+        }
+      ]
+    }
+  ];
+
+  const addCellOptions = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    body: updatedWatchlist
+  };
+
+  try {
+    await smartsheet.sheets.updateRow(addCellOptions);
+  } catch (err) {
+    console.log("err", err);
+  }
   res.status(200).send("Removed game from watchlist");
 });
 module.exports = user;
