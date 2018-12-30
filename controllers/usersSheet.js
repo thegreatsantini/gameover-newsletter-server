@@ -15,12 +15,30 @@ usersSheet.get("/all", async (req, res, err) => {
   };
 
   const allUsers = await smartsheet.sheets.getSheet(options);
-  console.log("All Users", allUsers);
-  res.status(200).send("Grabbing all Users!");
+
+  const keys = [
+    "id",
+    "email",
+    "username",
+    "password",
+    "watchlist",
+    "following"
+  ];
+
+  const massagedData = allUsers.rows.map((person, index) => {
+    return person.cells.reduce((acc, next, i) => {
+      if (!acc.hasOwnProperty("rowId")) {
+        acc.rowId = allUsers.rows[index].id;
+      }
+      acc[keys[i]] = next.value || "";
+      return acc;
+    }, {});
+  });
+  res.status(200).send(massagedData);
 });
-// View user
+// Get Friend Data
 usersSheet.get("/view/:id", async (req, res, err) => {
-  var options = {
+  const options = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
       query: `"${req.params.id}"`
@@ -33,40 +51,156 @@ usersSheet.get("/view/:id", async (req, res, err) => {
       .searchSheet(options)
       .then(res => res.results[0].objectId)
   };
-  const friendData = await smartsheet.sheets.getRow(friendOptions);
-  console.log('Friend Data'. friendData);
-  res.status(200).send("viewing friend profile");
+
+  const gameKeys = ["game", "console", "available", "received", "ganres"];
+  const userKeys = [
+    "rowId",
+    "id",
+    "email",
+    "userName",
+    "watchlist",
+    "following"
+  ];
+
+  const allGames = await smartsheet.sheets
+    .getSheet({ id: process.env.SMARTSHEET_GAME_SHEET_ID })
+    .then(res => {
+      return res.rows.reduce((parentObj, parentNext) => {
+        parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
+          if (!acc.hasOwnProperty("rowId")) {
+            acc.rowId = parentNext.id;
+          } else {
+            acc[gameKeys[i]] = next.value || "";
+          }
+          return acc;
+        }, {});
+        return parentObj;
+      }, {});
+    })
+    .catch(err => console.log(err));
+
+  const allUsers = await smartsheet.sheets
+    .getSheet({ id: process.env.SMARTSHEET_USER_SHEET_ID })
+    .then(res => {
+      return res.rows.reduce((parentObj, parentNext, index) => {
+        parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
+          if (!acc.hasOwnProperty("rowId")) {
+            acc[userKeys[i]] = parentNext.id;
+          } else {
+            acc[userKeys[i]] = next.value || "";
+          }
+          return acc;
+        }, {});
+        return parentObj;
+      }, {});
+    })
+    .catch(err => console.log(err));
+
+  try {
+    const friendData = await smartsheet.sheets.getRow(friendOptions);
+    const mySpit = data => (data.length > 1 ? data.split(",") : [data]);
+    const { cells } = friendData;
+    const friendObject = {
+      userRow: friendData.id,
+      email: cells[1].value,
+      userName: cells[2].value,
+      watchlist: mySpit(friendData.cells[4].displayValue.trim()).map(
+        val => allGames[val]
+      ),
+      followers: mySpit(friendData.cells[5].displayValue.trim()).map(
+        val => allUsers[val]
+      )
+    };
+    res.status(200).send(friendObject);
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ error: err.toString() });
+  }
 });
 // Follow user
-usersSheet.post("/followers/add", async (req, res, err) => {
-  /*
-  find current user
-  get followers
-  add new follower
-  */
- // Set options
-var options = {
-  id: process.env.SMARTSHEET_USER_SHEET_ID // Id of Sheet
-};
+usersSheet.put("/followers/add", async (req, res, err) => {
+  const searchOptions = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    queryParameters: {
+      query: `"${req.body.userId}"`
+    }
+  };
 
-// Saved some data manip for you
-const userToAdd = allUserssmartsheet.sheets.getSheet(options)
-    .then(function(sheetInfo) {
-        console.log(sheetInfo);
-    })
-    .catch(function(error) {
-        console.log(error);
+  const newFriendsRow = await smartsheet.search
+    .searchSheet(searchOptions)
+    .then(async data => {
+      return await smartsheet.sheets
+        .getRow({
+          sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+          rowId: data.results[0].objectId
+        })
+        .then(res => {
+          let currentFollowers = res.cells[5].displayValue;
+          return currentFollowers + "," + req.body.friendRowId;
+        });
     });
+
+  const newCell = [
+    {
+      id: await smartsheet.search
+        .searchSheet(searchOptions)
+        .then(data => data.results[0].objectId),
+      cells: [
+        {
+          columnId: process.env.FOLLOWING_COLUMN_ID,
+          value: newFriendsRow
+        }
+      ]
+    }
+  ];
+
+  const options = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    body: newCell
+  };
+  try {
+    await smartsheet.sheets.updateRow(options);
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ error: err.toString() });
+  }
 
   res.status(200).send("Added new user");
 });
 // Remove a followed user
 usersSheet.post("/followers/remove", async (req, res, err) => {
-  /*
-  find current user
-  get followers
-  add new follower
-  */
+  const searchOptions = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    queryParameters: {
+      query: `"${req.body.userId}"`
+    }
+  };
+
+  const newCell = [
+    {
+      id: await smartsheet.search
+        .searchSheet(searchOptions)
+        .then(data => data.results[0].objectId),
+      cells: [
+        {
+          columnId: process.env.FOLLOWING_COLUMN_ID,
+          value: req.body.friendRowId
+        }
+      ]
+    }
+  ];
+
+  const options = {
+    sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+    body: newCell
+  };
+  try {
+    await smartsheet.sheets.updateRow(options);
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ error: err.toString() });
+  }
+
   res.status(200).send("removed user");
 });
 module.exports = usersSheet;
