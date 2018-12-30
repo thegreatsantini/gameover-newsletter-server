@@ -26,7 +26,7 @@ gameSheets.get("/games", async (req, res, err) => {
       return acc;
     }, {});
   });
-  res.status(200).send({ "all games!": gamesArr });
+  res.status(200).send(gamesArr);
 });
 
 module.exports = gameSheets;
