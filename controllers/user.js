@@ -39,7 +39,10 @@ user.get("/:id", async (req, res, err) => {
     .then(res => {
       return res.rows.reduce((parentObj, parentNext, index) => {
         parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
-          acc[gameKeys[i]] = next.value || "";
+          if (!acc.hasOwnProperty("rowId")) {
+            acc["rowId"] = parentNext.id;
+          }
+          acc[gameKeys[i]] = next.displayValue || "";
           return acc;
         }, {});
         return parentObj;
@@ -67,7 +70,7 @@ user.get("/:id", async (req, res, err) => {
     const mySpit = data => (data.length > 1 ? data.split(",") : [data]);
     const { cells } = currentUserData;
     const userObj = {
-      userId : cells[0].value,
+      userId: cells[0].value,
       email: cells[1].value,
       userName: cells[2].value,
       watchlist: mySpit(currentUserData.cells[4].displayValue.trim()).map(
@@ -76,7 +79,7 @@ user.get("/:id", async (req, res, err) => {
       followers: mySpit(currentUserData.cells[5].displayValue.trim()).map(
         val => allUsers[val]
       )
-    };    
+    };
     res.status(200).send(userObj);
   } catch (err) {
     console.log("err", err);
@@ -150,7 +153,8 @@ user.post("/watchlist/remove", async (req, res, err) => {
   };
 
   try {
-    await smartsheet.sheets.updateRow(addCellOptions);
+    const remove = await smartsheet.sheets.updateRow(addCellOptions);
+    console.log(remove)
   } catch (err) {
     console.log("err", err);
     res.status(500).json({ error: err.toString() });
