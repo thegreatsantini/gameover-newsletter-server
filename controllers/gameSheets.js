@@ -16,7 +16,7 @@ gameSheets.get("/games", async (req, res, err) => {
 
   const games = await smartsheet.sheets.getSheet(options);
 
-  const keys = ["title", "console", "avaliable", "pending", "genres"];
+  const keys = ["title", "gameConsole", "available", "received", "genres"];
   const gamesArr = games.rows.map((game, indexId) => {
     return game.cells.reduce((acc, next, i) => {
       if (!acc.hasOwnProperty("rowId")) {
