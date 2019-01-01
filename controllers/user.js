@@ -98,6 +98,20 @@ user.put("/watchlist/add", async (req, res, err) => {
     }
   };
 
+  const updatedGamesRow = await smartsheet.search
+    .searchSheet(options)
+    .then(async data => {
+      return await smartsheet.sheets
+        .getRow({
+          sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
+          rowId: data.results[0].objectId
+        })
+        .then(res => {
+          let currentGames = res.cells[4].displayValue;
+          return currentGames + "," + req.body.gameRowId;
+        })
+        .catch(err => console.log(err));
+    });
   const updatedWatchlist = [
     {
       id: await smartsheet.search
@@ -106,7 +120,7 @@ user.put("/watchlist/add", async (req, res, err) => {
       cells: [
         {
           columnId: process.env.WATCHLIST_COLUMN_ID,
-          value: req.body.gameRowId
+          value: updatedGamesRow
         }
       ]
     }
