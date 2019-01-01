@@ -52,12 +52,12 @@ usersSheet.get("/view/:id", async (req, res, err) => {
       .then(res => res.results[0].objectId)
   };
 
-  const gameKeys = ["game", "console", "available", "received", "ganres"];
+  const gameKeys = ["title", "console", "available", "received", "genres"];
   const userKeys = [
-    "rowId",
     "id",
     "email",
     "userName",
+    "password",
     "watchlist",
     "following"
   ];
@@ -65,30 +65,30 @@ usersSheet.get("/view/:id", async (req, res, err) => {
   const allGames = await smartsheet.sheets
     .getSheet({ id: process.env.SMARTSHEET_GAME_SHEET_ID })
     .then(res => {
-      return res.rows.reduce((parentObj, parentNext) => {
+      return res.rows.reduce((parentObj, parentNext, index) => {
         parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
           if (!acc.hasOwnProperty("rowId")) {
-            acc.rowId = parentNext.id;
-          } else {
-            acc[gameKeys[i]] = next.value || "";
+            acc["rowId"] = parentNext.id;
           }
+          acc[gameKeys[i]] = next.displayValue || "";
           return acc;
         }, {});
         return parentObj;
       }, {});
     })
     .catch(err => console.log(err));
-
   const allUsers = await smartsheet.sheets
     .getSheet({ id: process.env.SMARTSHEET_USER_SHEET_ID })
     .then(res => {
       return res.rows.reduce((parentObj, parentNext, index) => {
         parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
           if (!acc.hasOwnProperty("rowId")) {
-            acc[userKeys[i]] = parentNext.id;
-          } else {
-            acc[userKeys[i]] = next.value || "";
+            acc.rowId = parentNext.id;
+          } 
+          if (userKeys[i] !== "password") {
+            acc[userKeys[i]] = next.displayValue || "";
           }
+
           return acc;
         }, {});
         return parentObj;
@@ -111,6 +111,7 @@ usersSheet.get("/view/:id", async (req, res, err) => {
         val => allUsers[val]
       )
     };
+  
     res.status(200).send(friendObject);
   } catch (err) {
     console.log("err", err);
@@ -169,6 +170,7 @@ usersSheet.put("/followers/add", async (req, res, err) => {
 });
 // Remove a followed user
 usersSheet.post("/followers/remove", async (req, res, err) => {
+  console.log('RRRRRRRRRRRRRRRRRRRRRRRRRRRRRUUUUUUUUUUUNNNNN')
   const searchOptions = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
