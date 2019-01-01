@@ -26,10 +26,10 @@ user.get("/:id", async (req, res, err) => {
 
   const gameKeys = ["title", "console", "available", "received", "genres"];
   const userKeys = [
-    "rowId",
     "id",
     "email",
     "userName",
+    "password",
     "watchlist",
     "following"
   ];
@@ -55,10 +55,12 @@ user.get("/:id", async (req, res, err) => {
       return res.rows.reduce((parentObj, parentNext, index) => {
         parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
           if (!acc.hasOwnProperty("rowId")) {
-            acc[userKeys[i]] = parentNext.id;
-          } else {
-            acc[userKeys[i]] = next.value || "";
+            acc.rowId = parentNext.id;
           }
+          if (userKeys[i] !== "password") {
+            acc[userKeys[i]] = next.displayValue || "";
+          }
+
           return acc;
         }, {});
         return parentObj;
@@ -125,7 +127,7 @@ user.put("/watchlist/add", async (req, res, err) => {
 });
 
 // Remove game from watchlist
-user.post("/watchlist/remove", async (req, res, err) => {
+user.put("/watchlist/remove", async (req, res, err) => {
   const options = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
@@ -141,12 +143,11 @@ user.post("/watchlist/remove", async (req, res, err) => {
       cells: [
         {
           columnId: process.env.WATCHLIST_COLUMN_ID,
-          value: req.body.gameRowId
+          value: req.body.gameRows
         }
       ]
     }
   ];
-
   const addCellOptions = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     body: updatedWatchlist
@@ -154,7 +155,6 @@ user.post("/watchlist/remove", async (req, res, err) => {
 
   try {
     const remove = await smartsheet.sheets.updateRow(addCellOptions);
-    console.log(remove)
   } catch (err) {
     console.log("err", err);
     res.status(500).json({ error: err.toString() });
