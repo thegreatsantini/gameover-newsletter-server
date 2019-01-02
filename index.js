@@ -27,7 +27,6 @@ app.get("/test", (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080
-// starting an express server
 app.listen(PORT, () => {
   console.log("Ports listening on 3000...");
 });
