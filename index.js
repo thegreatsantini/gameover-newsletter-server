@@ -2,9 +2,7 @@ const express = require("express");
 const app = express(),
   bodyParser = require("body-parser"),
   cors = require("cors"),
-  fs = require("fs"),
   qs = require("querystring"),
-  ssclient = require("smartsheet");
 
 const auth = require("./controllers/auth");
 const gameSheets = require("./controllers/gameSheets");
