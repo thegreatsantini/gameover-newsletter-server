@@ -1,16 +1,16 @@
 const express = require("express");
 const app = express(),
-      bodyParser = require('body-parser'),
-      config = require("./config.json"),
-      cors = require('cors'),
-      fs = require('fs'),
-      qs = require("querystring"),
-      ssclient = require("smartsheet");
+  bodyParser = require("body-parser"),
+  config = require("./config.json"),
+  cors = require("cors"),
+  fs = require("fs"),
+  qs = require("querystring"),
+  ssclient = require("smartsheet");
 
-const auth = require('./controllers/auth');
-const gameSheets = require('./controllers/gameSheets');
-const usersSheet = require('./controllers/usersSheet');
-const user = require('./controllers/user');
+const auth = require("./controllers/auth");
+const gameSheets = require("./controllers/gameSheets");
+const usersSheet = require("./controllers/usersSheet");
+const user = require("./controllers/user");
 
 // instantiate the Smartsheet client
 const smartsheet = ssclient.createClient({
@@ -20,18 +20,18 @@ const smartsheet = ssclient.createClient({
 
 // middleware
 app.use(cors());
-app.use(bodyParser.json({limit: "50mb"}));
+app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // controllers
-app.use('/auth', auth);
-app.use('/user', user);
-app.use('/gamesheets', gameSheets);
-app.use('/usersSheet', usersSheet);
+app.use("/auth", auth);
+app.use("/user", user);
+app.use("/gamesheets", gameSheets);
+app.use("/usersSheet", usersSheet);
 
 // setting up home route containing basic page content
 app.get("/", (req, res) => {
-  console.log('hello********************')
+  console.log("hello********************");
   res.send(
     '<h1>Sample oAuth flow for Smartsheet</h1><a href="/auth">Login to Smartsheet</a></br><a href="/refresh">Refresh Token</a>'
   );
@@ -56,7 +56,7 @@ const authorizationUri = authorizeURL({
 
 // callback service parses the authorization code, requests access token, and saves it
 app.get("/return", (req, res) => {
-  console.log('************', req.query);
+  console.log("************", req.query);
   const authCode = req.query.code;
   const generated_hash = require("crypto")
     .createHash("sha256")
@@ -71,10 +71,10 @@ app.get("/return", (req, res) => {
   };
   smartsheet.tokens.getAccessToken(options, processToken).then(token => {
     // return res.status(200).json(token);
-    console.log('hello from callback', token.access_token)
+    console.log("hello from callback", token.access_token);
     // return res.status(200).send('HELLO FROM SERVER');
     // return res.send({'token': token.access_token})
-    return res.redirect(`http://localhost:3000/${token.access_token}`)
+    return res.redirect(`http://localhost:3000/${token.access_token}`);
   });
 });
 
@@ -119,7 +119,7 @@ function processToken(error, token) {
     console.error("Access Token Error:", error.message);
     return error;
   }
-//   console.log("The resulting token: ", token);
+  //   console.log("The resulting token: ", token);
   // IMPORTANT: token saved to local JSON as EXAMPLE ONLY.
   // You should save access_token, refresh_token, and expires_in to database for use in application.
   let returned_token = {
