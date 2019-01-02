@@ -30,10 +30,9 @@ app.use("/gamesheets", gameSheets);
 app.use("/usersSheet", usersSheet);
 
 // setting up home route containing basic page content
-app.get("/", (req, res) => {
-  console.log("hello********************");
+app.get("/test", (req, res) => {
   res.send(
-    '<h1>Sample oAuth flow for Smartsheet</h1><a href="/auth">Login to Smartsheet</a></br><a href="/refresh">Refresh Token</a>'
+    '<h1>Hello From server</h1>'
   );
 });
 
@@ -131,8 +130,8 @@ function processToken(error, token) {
 
   return token;
 }
-
+const PORT = process.env.PORT || 8080
 // starting an express server
-app.listen(8080, () => {
+app.listen(PORT, () => {
   console.log("Ports listening on 3000...");
 });
