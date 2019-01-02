@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express(),
   bodyParser = require("body-parser"),
-  config = require("./config.json"),
   cors = require("cors"),
   fs = require("fs"),
   qs = require("querystring"),
