@@ -1,10 +1,8 @@
 const express = require("express");
-const app = express(),
-  bodyParser = require("body-parser"),
-  config = require("./config.json"),
-  cors = require("cors"),
-  qs = require("querystring"),
-
+const app = express();
+const bodyParser = require("body-parser");
+const config = require("./config.json");
+const cors = require("cors");
 const auth = require("./controllers/auth");
 const gameSheets = require("./controllers/gameSheets");
 const usersSheet = require("./controllers/usersSheet");
