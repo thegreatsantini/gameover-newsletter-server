@@ -84,7 +84,7 @@ usersSheet.get("/view/:id", async (req, res, err) => {
         parentObj[parentNext.id] = parentNext.cells.reduce((acc, next, i) => {
           if (!acc.hasOwnProperty("rowId")) {
             acc.rowId = parentNext.id;
-          } 
+          }
           if (userKeys[i] !== "password") {
             acc[userKeys[i]] = next.displayValue || "";
           }
@@ -98,20 +98,23 @@ usersSheet.get("/view/:id", async (req, res, err) => {
 
   try {
     const friendData = await smartsheet.sheets.getRow(friendOptions);
-    const mySpit = data => (data.length > 1 ? data.split(",") : [data]);
     const { cells } = friendData;
+    const mySpit = (data, which) => {
+      let info;
+      if (!data) {
+        return [];
+      } else {
+        info = data.length > 1 ? data.split(",") : [data];
+        return info.map(val => which[val.trim()]);
+      }
+    };
     const friendObject = {
       userRow: friendData.id,
       email: cells[1].value,
       userName: cells[2].value,
-      watchlist: mySpit(friendData.cells[4].displayValue.trim()).map(
-        val => allGames[val]
-      ),
-      followers: mySpit(friendData.cells[5].displayValue.trim()).map(
-        val => allUsers[val]
-      )
+      watchlist: await mySpit(friendData.cells[4].displayValue, allGames),
+      followers: await mySpit(friendData.cells[5].displayValue, allUsers)
     };
-  
     res.status(200).send(friendObject);
   } catch (err) {
     console.log("err", err);
@@ -170,7 +173,6 @@ usersSheet.put("/followers/add", async (req, res, err) => {
 });
 // Remove a followed user
 usersSheet.post("/followers/remove", async (req, res, err) => {
-  console.log('RRRRRRRRRRRRRRRRRRRRRRRRRRRRRUUUUUUUUUUUNNNNN')
   const searchOptions = {
     sheetId: process.env.SMARTSHEET_USER_SHEET_ID,
     queryParameters: {
